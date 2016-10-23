@@ -20,6 +20,10 @@ int32_t nurand(int32_t A,int32_t x,int32_t y) {
    return ((((random()%A)|(random()%(y-x+1)+x))+42)%(y-x+1))+x;
 }
 
+void newOrder(int32_t w_id, int32_t d_id, int32_t c_id, int32_t ol_cnt,int32_t supware[15], int32_t itemid[15], int32_t qty[15], Timestamp now) {
+
+}
+
 void newOrderRandom() {
    Timestamp now(0);
    int32_t w_id=urand(1,warehouses);
