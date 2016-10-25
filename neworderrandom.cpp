@@ -1,9 +1,15 @@
 #include <cstdint>
 #include "Types.hpp"
 #include "Schema.hpp"
+#include <vector>
+#include <unordered_map>
 using namespace std;
 
 const int32_t warehouses=5;
+//Warehouses
+vector<Warehouse> warehouses_2;
+// primary key Warehouses
+unordered_map<Integer, Tid> w_p_k;
 
 int32_t urand(int32_t min,int32_t max) {
    return (random()%(max-min+1))+min;
