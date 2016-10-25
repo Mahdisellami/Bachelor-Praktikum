@@ -19,7 +19,6 @@ struct Warehouse{
 	Numeric<4,4> w_tax;
 	Numeric<12,2> w_ytd;
 	// primary key (w_id)
-	unordered_map<Integer, Tid> w_p_k;
 };
 
 //---------------------------------------------------------------------------
@@ -37,7 +36,6 @@ struct District {
 	Numeric<12,2> d_ytd;
 	Integer d_next_o_id;
 	// primary key (d_w_id,d_id)
-    unordered_map<tuple<Integer,Integer>,Tid> d_p_k;
 };
 
 //---------------------------------------------------------------------------
@@ -65,7 +63,6 @@ struct Customer {
 	Numeric<4,0> c_delivery_cnt;
 	Varchar<500> c_data;
 	//primary key (c_w_id,c_d_id,c_id)
-	unordered_map<tuple<Integer,Integer,Integer>,Tid> c_p_k;
 };
 
 //---------------------------------------------------------------------------
@@ -88,7 +85,6 @@ struct NewOrder {
 	Integer no_d_id;
 	Integer no_w_id;
 	//primary key (no_w_id,no_d_id,no_o_id)
-	unordered_map<tuple<Integer,Integer,Integer>,Tid> no_p_k;
 };
 
 //---------------------------------------------------------------------------
@@ -103,7 +99,6 @@ struct Order {
 	Numeric<2,0> o_ol_cnt;
 	Numeric<1,0> o_all_local;
 	//primary key (o_w_id,o_d_id,o_id)
-	unordered_map<tuple<Integer,Integer,Integer>,Tid> o_p_k;
 };
 
 //---------------------------------------------------------------------------
@@ -120,7 +115,6 @@ struct OrderLine {
 	Numeric<6,2> ol_amount;
 	Char<24> ol_dist_info;
 	//primary key (ol_w_id,ol_d_id,ol_o_id,ol_number)
-	unordered_map<tuple<Integer,Integer,Integer,Integer>,Tid> ol_p_k;
 };
 
 //---------------------------------------------------------------------------
@@ -131,7 +125,6 @@ struct Item {
 	Varchar<24> i_name;
 	Numeric<5,2> i_price;
 	Varchar<50> i_data;
-	std::unordered_map<Integer, Tid> i_p_k;
 };
 
 //---------------------------------------------------------------------------
@@ -155,6 +148,6 @@ struct Stock {
 	Numeric<4,0> s_remote_cnt;
 	Varchar<50> s_data;
 	//primary key (s_w_id,s_i_id)
-	unordered_map<tuple<Integer,Integer>,Tid> s_p_k;
 };
 
+#endif

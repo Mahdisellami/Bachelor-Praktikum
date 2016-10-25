@@ -1,5 +1,7 @@
 #include <cstdint>
 #include "Types.hpp"
+#include "Schema.hpp"
+using namespace std;
 
 const int32_t warehouses=5;
 
@@ -43,4 +45,7 @@ void newOrderRandom() {
    }
 
    newOrder(w_id,d_id,c_id,ol_cnt,supware,itemid,qty,now);
+}
+
+int main(){
 }
