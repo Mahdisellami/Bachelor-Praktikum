@@ -99,7 +99,7 @@ int main(){
     string line;
     ifstream inputFile; //Input file stream object
     
-    inputFile.open("/Users/mahdisellami/Documents/Bachelor-Praktikum/tpcc_orderline.tbl"); //Opening the file
+    inputFile.open("tpcc_warehouse.tbl"); //Opening the file
     if(!inputFile) cout << "there's something wrong with the file!\n"; //Throw exception
 
     while(!inputFile.eof()){
