@@ -960,7 +960,8 @@ int main() {
 	}
 	clock_t end = clock();
 	double elapsed_secs = (double(end - begin) / CLOCKS_PER_SEC) / 100;
-	cout << "10000 Transactions in " << elapsed_secs << "secs.\n";
+	double transactions = 10000.0 / elapsed_secs;
+	cout << transactions << " Transactions per second.\n";
 	cout << "Orders: " << orders.size() << "\n";
 	cout << "New Orders: " << newOrders.size() << "\n";
 	cout << "Order Lines: " << orderLines.size() << "\n";
