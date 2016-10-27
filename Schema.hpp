@@ -125,6 +125,7 @@ struct Item {
 	Varchar<24> i_name;
 	Numeric<5,2> i_price;
 	Varchar<50> i_data;
+	//primary key (i_id)
 };
 
 //---------------------------------------------------------------------------
