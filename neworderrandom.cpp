@@ -1,12 +1,11 @@
 #include <cstdint>
 #include "Types.hpp"
-#include "Schema.hpp"
-#include "Warehouse.hpp"
 #include <vector>
 #include <unordered_map>
 #include <iostream>
 #include <tuple>
 #include <ctime>
+#include "Tpcc.hpp"
 
 using namespace std;
 
