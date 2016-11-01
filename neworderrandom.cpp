@@ -6,6 +6,7 @@
 #include <tuple>
 #include <ctime>
 #include "Tpcc.hpp"
+#include "Parser.hpp"
 
 using namespace std;
 
@@ -139,6 +140,8 @@ void newOrderRandom() {
 }
 
 int main() {
+	Parser p("schema.sql");
+	cout << p.parse()->toString() << "\n";
 	tpcc.populateDataBase();
 	cout << "Orders: " << tpcc.order.order.size() << "\n";
 	cout << "New Orders: " << tpcc.newOrder.newOrder.size() << "\n";

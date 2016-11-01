@@ -5,6 +5,14 @@
 #include <cstring>
 #include <ostream>
 #include <cassert>
+
+/**
+ * Types
+ */
+namespace Types {
+   enum class Tag : unsigned {Integer, Varchar, Char, Numeric, Date, Timestamp};
+}
+
 //---------------------------------------------------------------------------
 // HyPer
 // (c) Thomas Neumann 2010
