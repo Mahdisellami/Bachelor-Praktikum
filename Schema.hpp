@@ -8,7 +8,7 @@ using namespace std;
 
 //---------------------------------------------------------------------------
 /// Warehouse Row
-struct Warehouse{
+struct Warehouse_t{
 	Integer w_id;
 	Varchar<10> w_name;
 	Varchar<20> w_street_1;
@@ -23,7 +23,7 @@ struct Warehouse{
 
 //---------------------------------------------------------------------------
 /// District Row
-struct District {
+struct District_t {
 	Integer d_id;
 	Integer d_w_id;
 	Varchar<10> d_name;
@@ -40,7 +40,7 @@ struct District {
 
 //---------------------------------------------------------------------------
 /// Customer Row
-struct Customer {
+struct Customer_t {
 	Integer c_id;
 	Integer c_d_id;
 	Integer c_w_id;
@@ -67,7 +67,7 @@ struct Customer {
 
 //---------------------------------------------------------------------------
 /// History Row
-struct History {
+struct History_t {
 	Integer h_c_id;
 	Integer h_c_d_id;
 	Integer h_c_w_id;
@@ -80,7 +80,7 @@ struct History {
 
 //---------------------------------------------------------------------------
 /// NewOrder Row
-struct NewOrder {
+struct NewOrder_t {
 	Integer no_o_id;
 	Integer no_d_id;
 	Integer no_w_id;
@@ -89,7 +89,7 @@ struct NewOrder {
 
 //---------------------------------------------------------------------------
 /// Order Row
-struct Order {
+struct Order_t {
 	Integer o_id;
 	Integer o_d_id;
 	Integer o_w_id;
@@ -103,7 +103,7 @@ struct Order {
 
 //---------------------------------------------------------------------------
 /// OrderLine Row
-struct OrderLine {
+struct OrderLine_t {
 	Integer ol_o_id;
 	Integer ol_d_id;
 	Integer ol_w_id;
@@ -119,7 +119,7 @@ struct OrderLine {
 
 //---------------------------------------------------------------------------
 /// Item Row
-struct Item {
+struct Item_t {
 	Integer i_id;
 	Integer i_im_id;
 	Varchar<24> i_name;
@@ -130,7 +130,7 @@ struct Item {
 
 //---------------------------------------------------------------------------
 /// Stock Row
-struct Stock {
+struct Stock_t {
 	Integer s_i_id;
 	Integer s_w_id;
 	Numeric<4,0> s_quantity;

@@ -1,6 +1,7 @@
 #include <cstdint>
 #include "Types.hpp"
 #include "Schema.hpp"
+#include "Warehouse.hpp"
 #include <vector>
 #include <unordered_map>
 #include <iostream>
@@ -12,79 +13,8 @@ using namespace std;
 
 const int32_t warehouses = 5;
 
-namespace std {
-template<>
-struct hash<Integer> {
-	size_t operator()(const Integer& k) const {
-		return hash<int32_t>()(k.value);
-	}
-};
-
-template<>
-struct hash<tuple<Integer, Integer>> {
-	size_t operator()(tuple<Integer, Integer> const& k) const {
-		size_t h1 = hash<Integer>()(get<0>(k));
-		size_t h2 = hash<Integer>()(get<1>(k));
-		return h1 ^ (h2 << 1);
-	}
-};
-
-template<>
-struct hash<tuple<Integer, Integer, Integer>> {
-	size_t operator()(tuple<Integer, Integer, Integer> const& k) const {
-		size_t h1 = hash<Integer>()(get<0>(k));
-		size_t h2 = hash<Integer>()(get<1>(k));
-		size_t h3 = hash<Integer>()(get<2>(k));
-		return h1 ^ ((h2 ^ (h3 << 1)) << 1);
-	}
-};
-
-template<>
-struct hash<tuple<Integer, Integer, Integer, Integer>> {
-	size_t operator()(
-			tuple<Integer, Integer, Integer, Integer> const& k) const {
-		size_t h1 = hash<Integer>()(get<0>(k));
-		size_t h2 = hash<Integer>()(get<1>(k));
-		size_t h3 = hash<Integer>()(get<2>(k));
-		size_t h4 = hash<Integer>()(get<3>(k));
-		return h1 ^ ((h2 ^ ((h3 ^ (h4 << 1)) << 1)) << 1);
-	}
-};
-}
-//Warehouses
-vector<Warehouse> warehouses_2;
-//Warehouses primary key
-unordered_map<Integer, Tid> w_p_k;
-//Districts
-vector<District> districts;
-//Warehouses primary key
-unordered_map<tuple<Integer, Integer>, Tid> d_p_k;
-//Customers
-vector<Customer> customers;
-//Customers primary key
-unordered_map<tuple<Integer, Integer, Integer>, Tid> c_p_k;
-//History
-vector<History> history;
-//NewOrders
-vector<NewOrder> newOrders;
-//NewOrders primary key
-unordered_map<tuple<Integer, Integer, Integer>, Tid> no_p_k;
-//Orders
-vector<Order> orders;
-//Orders primary key
-unordered_map<tuple<Integer, Integer, Integer>, Tid> o_p_k;
-//OrderLines
-vector<OrderLine> orderLines;
-//OrderLines primary key
-unordered_map<tuple<Integer, Integer, Integer, Integer>, Tid> ol_p_k;
-//Items
-vector<Item> items;
-//Items primary key
-unordered_map<Integer, Tid> i_p_k;
-//Stock
-vector<Stock> stock;
-//Stock primary key
-unordered_map<tuple<Integer, Integer>, Tid> s_p_k;
+//TPCC
+TPCC tpcc;
 
 int32_t urand(int32_t min, int32_t max) {
 	return (random() % (max - min + 1)) + min;
@@ -122,10 +52,6 @@ void addWarehouses() {
 			string current = line.substr(0, line.find_first_of('|'));
 			Integer w_id = Integer::castString(current.c_str(), current.size());
 
-			//verify the primary key
-
-			if (w_p_k.find(w_id) == w_p_k.end()) {
-				w_p_k.insert( { w_id, warehouses_2.size() });
 				line = line.substr(line.find_first_of('|') + 1,
 						line.length() - line.find_first_of('|'));
 				current = line.substr(0, line.find_first_of('|'));
@@ -166,12 +92,8 @@ void addWarehouses() {
 				current = line;
 				Numeric<12, 2> w_ytd = Numeric<12, 2>::castString(
 						current.c_str(), current.length());
-				Warehouse w = { w_id, w_name, w_street_1, w_street_2, w_city,
-						w_state, w_zip, w_tax, w_ytd, };
-				warehouses_2.push_back(w);
-			} else {
-				cout << "Primary key must be unique!\n";
-			}
+				tpcc.warehouse.insert(w_id, w_name, w_street_1 , w_street_2, w_city,
+						w_state, w_zip, w_tax, w_ytd);
 		}
 	}
 	cout << "Done." << "\n";
@@ -201,9 +123,6 @@ void addDistricts() {
 					current.length());
 
 			//verify the primary key
-
-			if (d_p_k.find( { d_id, d_w_id }) == d_p_k.end()) {
-				d_p_k.insert( { { d_id, d_w_id }, districts.size() });
 				line = line.substr(line.find_first_of('|') + 1,
 						line.length() - line.find_first_of('|'));
 				current = line.substr(0, line.find_first_of('|'));
@@ -249,12 +168,8 @@ void addDistricts() {
 				current = line;
 				Integer d_next_o_id = Integer::castString(current.c_str(),
 						current.length());
-				District d = { d_id, d_w_id, d_name, d_street_1, d_street_2,
-						d_city, d_state, d_zip, d_tax, d_ytd, d_next_o_id, };
-				districts.push_back(d);
-			} else {
-				cout << "Primary key must be unique!\n";
-			}
+				tpcc.district.insert(d_id, d_w_id, d_name, d_street_1, d_street_2,
+						d_city, d_state, d_zip, d_tax, d_ytd, d_next_o_id);
 		}
 	}
 	cout << "Done." << "\n";
@@ -288,10 +203,6 @@ void addCustomers() {
 			Integer c_w_id = Integer::castString(current.c_str(),
 					current.length());
 
-			//verify the primary key
-
-			if (c_p_k.find( { c_id, c_d_id, c_w_id }) == c_p_k.end()) {
-				c_p_k.insert( { { c_id, c_d_id, c_w_id }, customers.size() });
 				line = line.substr(line.find_first_of('|') + 1,
 						line.length() - line.find_first_of('|'));
 				current = line.substr(0, line.find_first_of('|'));
@@ -382,14 +293,10 @@ void addCustomers() {
 				current = line.substr(0, line.find_first_of('|'));
 				Varchar<500> c_data = Varchar<500>::castString(current.c_str(),
 						current.length());
-				Customer c = { c_id, c_d_id, c_w_id, c_first, c_middle, c_last,
+				tpcc.customer.insert( c_id, c_d_id, c_w_id, c_first, c_middle, c_last,
 						c_street_1, c_street_2, c_city, c_state, c_zip, c_phone,
 						c_since, c_credit, c_credit_lim, c_discount, c_balance,
-						c_ytd_paymenr, c_payment_cnt, c_delivery_cnt, c_data, };
-				customers.push_back(c);
-			} else {
-				cout << "Primary key must be unique!\n";
-			}
+						c_ytd_paymenr, c_payment_cnt, c_delivery_cnt, c_data);
 		}
 	}
 	cout << "Done." << "\n";
@@ -447,9 +354,8 @@ void addHistory() {
 			current = line.substr(0, line.find_first_of('|'));
 			Varchar<24> h_data = Varchar<24>::castString(current.c_str(),
 					current.length());
-			History h = { h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id, h_date,
-					h_amount, h_data, };
-			history.push_back(h);
+			tpcc.history.insert(h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id, h_date,
+					h_amount, h_data);
 		}
 	}
 	cout << "Done." << "\n";
@@ -483,16 +389,7 @@ void addNewOrders() {
 			Integer no_w_id = Integer::castString(current.c_str(),
 					current.length());
 
-			//verify the primary key
-
-			if (no_p_k.find( { no_o_id, no_d_id, no_w_id }) == no_p_k.end()) {
-				no_p_k.insert(
-						{ { no_o_id, no_d_id, no_w_id }, newOrders.size() });
-				NewOrder no = { no_o_id, no_d_id, no_w_id, };
-				newOrders.push_back(no);
-			} else {
-				cout << "Primary key must be unique!\n";
-			}
+				tpcc.newOrder.insert(no_o_id, no_d_id, no_w_id);
 		}
 	}
 	cout << "Done." << "\n";
@@ -526,10 +423,6 @@ void addOrders() {
 			Integer o_w_id = Integer::castString(current.c_str(),
 					current.length());
 
-			//verify the primary key
-
-			if (o_p_k.find( { o_id, o_d_id, o_w_id }) == o_p_k.end()) {
-				o_p_k.insert( { { o_id, o_d_id, o_w_id }, orders.size() });
 				line = line.substr(line.find_first_of('|') + 1,
 						line.length() - line.find_first_of('|'));
 				current = line.substr(0, line.find_first_of('|'));
@@ -555,12 +448,8 @@ void addOrders() {
 				current = line.substr(0, line.find_first_of('|'));
 				Numeric<1, 0> o_all_local = Numeric<1, 0>::castString(
 						current.c_str(), current.length());
-				Order o = { o_id, o_d_id, o_w_id, o_c_id, o_entry_d,
-						o_carrier_id, o_ol_cnt, o_all_local, };
-				orders.push_back(o);
-			} else {
-				cout << "Primary key must be unique!\n";
-			}
+				tpcc.order.insert(o_id, o_d_id, o_w_id, o_c_id, o_entry_d,
+						o_carrier_id, o_ol_cnt, o_all_local);
 		}
 	}
 	cout << "Done." << "\n";
@@ -599,12 +488,6 @@ void addOrderLines() {
 			Integer ol_number = Integer::castString(current.c_str(),
 					current.length());
 
-			//verify the primary key
-
-			if (ol_p_k.find( { ol_o_id, ol_d_id, ol_w_id, ol_number })
-					== ol_p_k.end()) {
-				ol_p_k.insert( { { ol_o_id, ol_d_id, ol_w_id, ol_number },
-						orderLines.size() });
 				line = line.substr(line.find_first_of('|') + 1,
 						line.length() - line.find_first_of('|'));
 				current = line.substr(0, line.find_first_of('|'));
@@ -635,13 +518,9 @@ void addOrderLines() {
 				current = line.substr(0, line.find_first_of('|'));
 				Char<24> ol_dist_info = Char<24>::castString(current.c_str(),
 						current.length());
-				OrderLine ol = { ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id,
+				tpcc.orderLine.insert(ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id,
 						ol_supply_w_id, ol_delivery_d, ol_quantity, ol_amount,
-						ol_dist_info, };
-				orderLines.push_back(ol);
-			} else {
-				cout << "Primary key must be unique!\n";
-			}
+						ol_dist_info);
 		}
 	}
 	cout << "Done." << "\n";
@@ -664,10 +543,6 @@ void addItems() {
 			string current = line.substr(0, line.find_first_of('|'));
 			Integer i_id = Integer::castString(current.c_str(), current.size());
 
-			//verify the primary key
-
-			if (i_p_k.find(i_id) == i_p_k.end()) {
-				i_p_k.insert( { i_id, items.size() });
 				line = line.substr(line.find_first_of('|') + 1,
 						line.length() - line.find_first_of('|'));
 				current = line.substr(0, line.find_first_of('|'));
@@ -688,11 +563,7 @@ void addItems() {
 				current = line.substr(0, line.find_first_of('|'));
 				Varchar<50> i_data = Varchar<50>::castString(current.c_str(),
 						current.length());
-				Item i = { i_id, i_im_id, i_name, i_price, i_data, };
-				items.push_back(i);
-			} else {
-				cout << "Primary key must be unique!\n";
-			}
+				tpcc.item.insert(i_id, i_im_id, i_name, i_price, i_data);
 		}
 	}
 	cout << "Done." << "\n";
@@ -721,9 +592,6 @@ void addStock(string filename) {
 					current.length());
 
 			//verify the primary key
-
-			if (s_p_k.find( { s_i_id, s_w_id }) == d_p_k.end()) {
-				s_p_k.insert( { { s_i_id, s_w_id }, stock.size() });
 				line = line.substr(line.find_first_of('|') + 1,
 						line.length() - line.find_first_of('|'));
 				current = line.substr(0, line.find_first_of('|'));
@@ -799,14 +667,10 @@ void addStock(string filename) {
 				current = line.substr(0, line.find_first_of('|'));
 				Varchar<50> s_data = Varchar<50>::castString(current.c_str(),
 						current.length());
-				Stock s = { s_i_id, s_w_id, s_quantity, s_dist_01, s_dist_02,
+				tpcc.stock.insert( s_i_id, s_w_id, s_quantity, s_dist_01, s_dist_02,
 						s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07,
 						s_dist_08, s_dist_09, s_dist_10, s_ytd, s_order_cnt,
-						s_remote_cnt, s_data, };
-				stock.push_back(s);
-			} else {
-				cout << "Primary key must be unique!\n";
-			}
+						s_remote_cnt, s_data);
 		}
 	}
 }
@@ -835,95 +699,83 @@ void populateDataBase() {
 void newOrder(int32_t w_id, int32_t d_id, int32_t c_id, int32_t ol_cnt,
 		int32_t* supware, int32_t* itemid, int32_t* qty, Timestamp now) {
 
-	uint64_t tid = w_p_k.at(w_id);
-	Numeric<4, 4> w_tax = warehouses_2.at(tid).w_tax;
+	uint64_t tid = tpcc.warehouse.lookup(w_id);
+	Numeric<4, 4> w_tax = tpcc.warehouse.get_w_tax(tid);
 
-	tid = c_p_k.at( { c_id, d_id, w_id });
-	Numeric<4, 4> c_discount = customers.at(tid).c_discount;
+	tid = tpcc.customer.lookup(w_id, d_id, c_id );
+	Numeric<4, 4> c_discount = tpcc.customer.get_c_discount(tid);
 
-	tid = d_p_k.at( { d_id, w_id });
-	Integer o_id = districts.at(tid).d_next_o_id;
-	Numeric<4, 4> d_tax = districts.at(tid).d_tax;
-	districts.at(tid).d_next_o_id = o_id + 1;
+	tid = tpcc.district.lookup(w_id, d_id );
+	Integer o_id = tpcc.district.get_d_next_o_id(tid);
+	Numeric<4, 4> d_tax = tpcc.district.get_d_tax(tid);
+	tpcc.district.set_d_next_o_id(tid, o_id + 1);
 
 	Integer all_local = 1;
 	for (int32_t index = 0; index < ol_cnt - 1; index++) {
 		if (w_id != supware[index])
 			all_local = 0;
 	}
-	if (o_p_k.find( { o_id, d_id, w_id }) == o_p_k.end()) {
-		o_p_k.insert( { { o_id, d_id, w_id }, orders.size() });
-		Order o = { o_id, d_id, w_id, c_id, now, 0, ol_cnt, all_local, };
-		orders.push_back(o);
-	}
+	tpcc.order.insert(o_id, d_id, w_id, c_id, now, 0, ol_cnt, all_local);
 
-	if (no_p_k.find( { o_id, d_id, w_id }) == no_p_k.end()) {
-		no_p_k.insert( { { o_id, d_id, w_id }, newOrders.size() });
-		NewOrder no = { o_id, d_id, w_id, };
-		newOrders.push_back(no);
-	}
+	tpcc.newOrder.insert(o_id, d_id, w_id);
 
 	for (int32_t index = 0; index < ol_cnt - 1; index++) {
-		tid = i_p_k.at(itemid[index]);
-		Numeric<5, 2> i_price = items.at(tid).i_price;
+		tid = tpcc.item.lookup(itemid[index]);
+		Numeric<5, 2> i_price = tpcc.item.get_i_price(tid);
 
-		tid = s_p_k.at( { itemid[index], supware[index] });
-		Numeric<4, 0> s_quantity = stock.at(tid).s_quantity;
-		Numeric<4, 0> s_remote_cnt = stock.at(tid).s_remote_cnt;
-		Numeric<4, 0> s_order_cnt = stock.at(tid).s_order_cnt;
+		tid = tpcc.stock.lookup(supware[index], itemid[index]);
+		Numeric<4, 0> s_quantity = tpcc.stock.get_s_quantity(tid);
+		Numeric<4, 0> s_remote_cnt = tpcc.stock.get_s_remote_cnt(tid);
+		Numeric<4, 0> s_order_cnt = tpcc.stock.get_s_order_cnt(tid);
 		Char<24> s_dist;
 		switch (d_id) {
 		case 1:
-			s_dist = stock.at(tid).s_dist_01;
+			s_dist = tpcc.stock.get_s_dist_01(tid);
 			break;
 		case 2:
-			s_dist = stock.at(tid).s_dist_02;
+			s_dist = tpcc.stock.get_s_dist_02(tid);
 			break;
 		case 3:
-			s_dist = stock.at(tid).s_dist_03;
+			s_dist = tpcc.stock.get_s_dist_03(tid);
 			break;
 		case 4:
-			s_dist = stock.at(tid).s_dist_04;
+			s_dist = tpcc.stock.get_s_dist_04(tid);
 			break;
 		case 5:
-			s_dist = stock.at(tid).s_dist_05;
+			s_dist = tpcc.stock.get_s_dist_05(tid);
 			break;
 		case 6:
-			s_dist = stock.at(tid).s_dist_06;
+			s_dist = tpcc.stock.get_s_dist_06(tid);
 			break;
 		case 7:
-			s_dist = stock.at(tid).s_dist_07;
+			s_dist = tpcc.stock.get_s_dist_07(tid);
 			break;
 		case 8:
-			s_dist = stock.at(tid).s_dist_08;
+			s_dist = tpcc.stock.get_s_dist_08(tid);
 			break;
 		case 9:
-			s_dist = stock.at(tid).s_dist_09;
+			s_dist = tpcc.stock.get_s_dist_09(tid);
 			break;
 		case 10:
-			s_dist = stock.at(tid).s_dist_10;
+			s_dist = tpcc.stock.get_s_dist_10(tid);
 			break;
 		}
 		if (s_quantity > qty[index]) {
-			stock.at(tid).s_quantity = s_quantity - qty[index];
+			tpcc.stock.set_s_quantity(tid, s_quantity - qty[index]);
 		} else {
-			stock.at(tid).s_quantity = s_quantity + 91 - qty[index];
+			tpcc.stock.set_s_quantity(tid, s_quantity + 91 - qty[index]);
 		}
-		tid = s_p_k.at( { itemid[index], w_id });
+		tid = tpcc.stock.lookup(w_id ,itemid[index]);
 		if (supware[index] != w_id) {
-			stock.at(tid).s_remote_cnt = s_remote_cnt + 1;
+			tpcc.stock.set_s_remote_cnt(tid, s_remote_cnt + 1);
 		} else {
-			stock.at(tid).s_order_cnt = s_order_cnt + 1;
+			tpcc.stock.set_s_order_cnt(tid, s_order_cnt + 1);
 		}
 		int64_t ol_amount = qty[index] * i_price.value
 				* (1.0 + w_tax.value + d_tax.value) * (1.0 - c_discount.value);
-		if (ol_p_k.find( { o_id, d_id, w_id, index + 1 }) == ol_p_k.end()) {
-			ol_p_k.insert(
-					{ { o_id, d_id, w_id, index + 1 }, orderLines.size() });
-			OrderLine ol = { o_id, d_id, w_id, index + 1, itemid[index],
-					supware[index], 0, qty[index], ol_amount, s_dist, };
-			orderLines.push_back(ol);
-		}
+		tpcc.orderLine.insert(o_id, d_id, w_id, index + 1, itemid[index],
+					supware[index], 0, qty[index], ol_amount, s_dist);
+
 	}
 }
 
@@ -951,9 +803,9 @@ void newOrderRandom() {
 
 int main() {
 	populateDataBase();
-	cout << "Orders: " << orders.size() << "\n";
-	cout << "New Orders: " << newOrders.size() << "\n";
-	cout << "Order Lines: " << orderLines.size() << "\n";
+	cout << "Orders: " << tpcc.order.order.size() << "\n";
+	cout << "New Orders: " << tpcc.newOrder.newOrder.size() << "\n";
+	cout << "Order Lines: " << tpcc.orderLine.orderLine.size() << "\n";
 	clock_t begin = clock();
 	for (int i = 0; i < 1000000; i++) {
 		newOrderRandom();
@@ -962,8 +814,8 @@ int main() {
 	double elapsed_secs = (double(end - begin) / CLOCKS_PER_SEC) / 100;
 	double transactions = 10000.0 / elapsed_secs;
 	cout << transactions << " Transactions per second.\n";
-	cout << "Orders: " << orders.size() << "\n";
-	cout << "New Orders: " << newOrders.size() << "\n";
-	cout << "Order Lines: " << orderLines.size() << "\n";
+	cout << "Orders: " << tpcc.order.order.size() << "\n";
+	cout << "New Orders: " << tpcc.newOrder.newOrder.size() << "\n";
+	cout << "Order Lines: " << tpcc.orderLine.orderLine.size() << "\n";
 	return 0;
 }
