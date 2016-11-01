@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -715,6 +716,668 @@ public:
 	Stock stock;
 
 	TPCC() {}
+
+	inline void populateDataBase() {
+		cout << "Populating the Data Base..." << "\n";
+		addWarehouses();
+		addDistricts();
+		addCustomers();
+		addHistory();
+		addNewOrders();
+		addOrders();
+		addOrderLines();
+		addItems();
+		addStock();
+		cout << "Data is loaded." << "\n";
+	}
+
+	inline void addWarehouses() {
+		cout << "Adding the Warehouses...";
+		//read from warehouse.tbl line wise
+
+		string line;
+		ifstream inputFile; //Input file stream object
+
+		inputFile.open("tpcc_warehouse.tbl"); //Opening the file
+		if (!inputFile)
+			cout << "there's something wrong with the file!\n"; //Throw exception
+
+		while (!inputFile.eof()) {
+			getline(inputFile, line);
+			if (line.size()) {
+				string current = line.substr(0, line.find_first_of('|'));
+				Integer w_id = Integer::castString(current.c_str(), current.size());
+
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<10> w_name = Varchar<10>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<20> w_street_1 = Varchar<20>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<20> w_street_2 = Varchar<20>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<20> w_city = Varchar<20>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<2> w_state = Char<2>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<9> w_zip = Char<9>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<4, 4> w_tax = Numeric<4, 4>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line;
+					Numeric<12, 2> w_ytd = Numeric<12, 2>::castString(
+							current.c_str(), current.length());
+					warehouse.insert(w_id, w_name, w_street_1 , w_street_2, w_city,
+							w_state, w_zip, w_tax, w_ytd);
+			}
+		}
+		cout << "Done." << "\n";
+	}
+
+	inline void addDistricts() {
+		cout << "Adding the Districts...";
+		//read from district.tbl line wise
+
+		string line;
+		ifstream inputFile; //Input file stream object
+
+		inputFile.open("tpcc_district.tbl"); //Opening the file
+		if (!inputFile)
+			cout << "there's something wrong with the file!\n"; //Throw exception
+
+		while (!inputFile.eof()) {
+			getline(inputFile, line);
+			if (line.size()) {
+				string current = line.substr(0, line.find_first_of('|'));
+				Integer d_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer d_w_id = Integer::castString(current.c_str(),
+						current.length());
+
+				//verify the primary key
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<10> d_name = Varchar<10>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<20> d_street_1 = Varchar<20>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<20> d_street_2 = Varchar<20>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<20> d_city = Varchar<20>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<2> d_state = Char<2>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<9> d_zip = Char<9>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<4, 4> d_tax = Numeric<4, 4>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<12, 2> d_ytd = Numeric<12, 2>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line;
+					Integer d_next_o_id = Integer::castString(current.c_str(),
+							current.length());
+					district.insert(d_id, d_w_id, d_name, d_street_1, d_street_2,
+							d_city, d_state, d_zip, d_tax, d_ytd, d_next_o_id);
+			}
+		}
+		cout << "Done." << "\n";
+	}
+
+	inline void addCustomers() {
+		cout << "Adding the Customers...";
+		//read from customer.tbl line wise
+
+		string line;
+		ifstream inputFile; //Input file stream object
+
+		inputFile.open("tpcc_customer.tbl"); //Opening the file
+		if (!inputFile)
+			cout << "there's something wrong with the file!\n"; //Throw exception
+
+		while (!inputFile.eof()) {
+			getline(inputFile, line);
+			if (line.size()) {
+				string current = line.substr(0, line.find_first_of('|'));
+				Integer c_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer c_d_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer c_w_id = Integer::castString(current.c_str(),
+						current.length());
+
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<16> c_first = Varchar<16>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<2> c_middle = Char<2>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<16> c_last = Varchar<16>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<20> c_street_1 = Varchar<20>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<20> c_street_2 = Varchar<20>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<20> c_city = Varchar<20>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<2> c_state = Char<2>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<9> c_zip = Char<9>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<16> c_phone = Char<16>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Timestamp c_since = Timestamp::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<2> c_credit = Char<2>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<12, 2> c_credit_lim = Numeric<12, 2>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<4, 4> c_discount = Numeric<4, 4>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<12, 2> c_balance = Numeric<12, 2>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<12, 2> c_ytd_paymenr = Numeric<12, 2>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<4, 0> c_payment_cnt = Numeric<4, 0>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<4, 0> c_delivery_cnt = Numeric<4, 0>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<500> c_data = Varchar<500>::castString(current.c_str(),
+							current.length());
+					customer.insert( c_id, c_d_id, c_w_id, c_first, c_middle, c_last,
+							c_street_1, c_street_2, c_city, c_state, c_zip, c_phone,
+							c_since, c_credit, c_credit_lim, c_discount, c_balance,
+							c_ytd_paymenr, c_payment_cnt, c_delivery_cnt, c_data);
+			}
+		}
+		cout << "Done." << "\n";
+	}
+
+	inline void addHistory() {
+		cout << "Adding the History...";
+		//read from history.tbl line wise
+
+		string line;
+		ifstream inputFile; //Input file stream object
+
+		inputFile.open("tpcc_history.tbl"); //Opening the file
+		if (!inputFile)
+			cout << "there's something wrong with the file!\n"; //Throw exception
+
+		while (!inputFile.eof()) {
+			getline(inputFile, line);
+			if (line.size()) {
+				string current = line.substr(0, line.find_first_of('|'));
+				Integer h_c_id = Integer::castString(current.c_str(),
+						current.size());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer h_c_d_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer h_c_w_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer h_d_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer h_w_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Timestamp h_date = Timestamp::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Numeric<6, 2> h_amount = Numeric<6, 2>::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Varchar<24> h_data = Varchar<24>::castString(current.c_str(),
+						current.length());
+				history.insert(h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id, h_date,
+						h_amount, h_data);
+			}
+		}
+		cout << "Done." << "\n";
+	}
+
+	inline void addNewOrders() {
+		cout << "Adding the new Orders...";
+		//read from neworder.tbl line wise
+
+		string line;
+		ifstream inputFile; //Input file stream object
+
+		inputFile.open("tpcc_neworder.tbl"); //Opening the file
+		if (!inputFile)
+			cout << "there's something wrong with the file!\n"; //Throw exception
+
+		while (!inputFile.eof()) {
+			getline(inputFile, line);
+			if (line.size()) {
+				string current = line.substr(0, line.find_first_of('|'));
+				Integer no_o_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer no_d_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer no_w_id = Integer::castString(current.c_str(),
+						current.length());
+
+					newOrder.insert(no_o_id, no_d_id, no_w_id);
+			}
+		}
+		cout << "Done." << "\n";
+	}
+
+	inline void addOrders() {
+		cout << "Adding the Orders...";
+		//read from order.tbl line wise
+
+		string line;
+		ifstream inputFile; //Input file stream object
+
+		inputFile.open("tpcc_order.tbl"); //Opening the file
+		if (!inputFile)
+			cout << "there's something wrong with the file!\n"; //Throw exception
+
+		while (!inputFile.eof()) {
+			getline(inputFile, line);
+			if (line.size()) {
+				string current = line.substr(0, line.find_first_of('|'));
+				Integer o_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer o_d_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer o_w_id = Integer::castString(current.c_str(),
+						current.length());
+
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Integer o_c_id = Integer::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Timestamp o_entry_d = Timestamp::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Integer o_carrier_id = Integer::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<2, 0> o_ol_cnt = Numeric<2, 0>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<1, 0> o_all_local = Numeric<1, 0>::castString(
+							current.c_str(), current.length());
+					order.insert(o_id, o_d_id, o_w_id, o_c_id, o_entry_d,
+							o_carrier_id, o_ol_cnt, o_all_local);
+			}
+		}
+		cout << "Done." << "\n";
+	}
+
+	inline void addOrderLines() {
+		cout << "Adding the Order Lines...";
+		//read from orderline.tbl line wise
+
+		string line;
+		ifstream inputFile; //Input file stream object
+
+		inputFile.open("tpcc_orderline.tbl"); //Opening the file
+		if (!inputFile)
+			cout << "there's something wrong with the file!\n"; //Throw exception
+
+		while (!inputFile.eof()) {
+			getline(inputFile, line);
+			if (line.size()) {
+				string current = line.substr(0, line.find_first_of('|'));
+				Integer ol_o_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer ol_d_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer ol_w_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer ol_number = Integer::castString(current.c_str(),
+						current.length());
+
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Integer ol_i_id = Integer::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Integer ol_supply_w_id = Integer::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Timestamp ol_delivery_d = Timestamp::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<2, 0> ol_quantity = Numeric<2, 0>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<6, 2> ol_amount = Numeric<6, 2>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<24> ol_dist_info = Char<24>::castString(current.c_str(),
+							current.length());
+					orderLine.insert(ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id,
+							ol_supply_w_id, ol_delivery_d, ol_quantity, ol_amount,
+							ol_dist_info);
+			}
+		}
+		cout << "Done." << "\n";
+	}
+
+	inline void addItems() {
+		cout << "Adding the Items...";
+		//read from item.tbl line wise
+
+		string line;
+		ifstream inputFile; //Input file stream object
+
+		inputFile.open("tpcc_item.tbl"); //Opening the file
+		if (!inputFile)
+			cout << "there's something wrong with the file!\n"; //Throw exception
+
+		while (!inputFile.eof()) {
+			getline(inputFile, line);
+			if (line.size()) {
+				string current = line.substr(0, line.find_first_of('|'));
+				Integer i_id = Integer::castString(current.c_str(), current.size());
+
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Integer i_im_id = Integer::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<24> i_name = Varchar<24>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<5, 2> i_price = Numeric<5, 2>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<50> i_data = Varchar<50>::castString(current.c_str(),
+							current.length());
+					item.insert(i_id, i_im_id, i_name, i_price, i_data);
+			}
+		}
+		cout << "Done." << "\n";
+	}
+
+	inline void addStock(string filename) {
+		//read from stock.tbl/stock_2.tbl line wise
+
+		string line;
+		ifstream inputFile; //Input file stream object
+
+		inputFile.open(filename); //Opening the file
+		if (!inputFile)
+			cout << "there's something wrong with the file!\n"; //Throw exception
+
+		while (!inputFile.eof()) {
+			getline(inputFile, line);
+			if (line.size()) {
+				string current = line.substr(0, line.find_first_of('|'));
+				Integer s_i_id = Integer::castString(current.c_str(),
+						current.length());
+				line = line.substr(line.find_first_of('|') + 1,
+						line.length() - line.find_first_of('|'));
+				current = line.substr(0, line.find_first_of('|'));
+				Integer s_w_id = Integer::castString(current.c_str(),
+						current.length());
+
+				//verify the primary key
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<4, 0> s_quantity = Numeric<4, 0>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<24> s_dist_01 = Char<24>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<24> s_dist_02 = Char<24>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<24> s_dist_03 = Char<24>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<24> s_dist_04 = Char<24>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<24> s_dist_05 = Char<24>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<24> s_dist_06 = Char<24>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<24> s_dist_07 = Char<24>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<24> s_dist_08 = Char<24>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<24> s_dist_09 = Char<24>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Char<24> s_dist_10 = Char<24>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<8, 0> s_ytd = Numeric<8, 0>::castString(current.c_str(),
+							current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<4, 0> s_order_cnt = Numeric<4, 0>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Numeric<4, 0> s_remote_cnt = Numeric<4, 0>::castString(
+							current.c_str(), current.length());
+					line = line.substr(line.find_first_of('|') + 1,
+							line.length() - line.find_first_of('|'));
+					current = line.substr(0, line.find_first_of('|'));
+					Varchar<50> s_data = Varchar<50>::castString(current.c_str(),
+							current.length());
+					stock.insert( s_i_id, s_w_id, s_quantity, s_dist_01, s_dist_02,
+							s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07,
+							s_dist_08, s_dist_09, s_dist_10, s_ytd, s_order_cnt,
+							s_remote_cnt, s_data);
+			}
+		}
+	}
+
+	inline void addStock() {
+		cout << "Adding the Stock...";
+		addStock("tpcc_stock.tbl");
+		addStock("tpcc_stock_2.tbl");
+		cout << "Done." << "\n";
+	}
+
 
 };
 
