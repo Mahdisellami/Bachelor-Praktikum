@@ -71,7 +71,7 @@ create table neworder (
    primary key (no_w_id,no_d_id,no_o_id)
 );
 
-create table "order" (
+create table order (
    o_id integer not null,
    o_d_id integer not null,
    o_w_id integer not null,
