@@ -22,7 +22,7 @@ class ParserError : std::exception {
 struct Parser {
    std::string fileName;
    std::ifstream in;
-   enum class State : unsigned { Init, Create, Table, CreateTableBegin, CreateTableEnd, TableName, Primary, Key, KeyListBegin, KeyName, KeyListEnd, AttributeName, AttributeTypeInt, AttributeTypeVarchar, VarcharBegin, VarcharValue, VarcharEnd, AttributeTypeChar, CharBegin, CharValue, CharEnd, AttributeTypeNumeric, NumericBegin, NumericValue1, NumericSeparator, NumericValue2, NumericEnd, AttributeTypeDate, AttributeTypeTimestamp, Not, Null, Separator, Semicolon};
+   enum class State : unsigned { Init, Create, Table, CreateTableBegin, CreateTableEnd, TableName, Index, IndexName, IndexTable, IndexKeyListBegin, IndexKeyName, IndexKeyListEnd, Primary, Key, KeyListBegin, KeyName, KeyListEnd, AttributeName, AttributeTypeInt, AttributeTypeVarchar, VarcharBegin, VarcharValue, VarcharEnd, AttributeTypeChar, CharBegin, CharValue, CharEnd, AttributeTypeNumeric, NumericBegin, NumericValue1, NumericSeparator, NumericValue2, NumericEnd, AttributeTypeDate, AttributeTypeTimestamp, On, Not, Null, Separator, Semicolon};
    State state;
    Parser(const std::string& fileName) : fileName(fileName), state(State::Init) {}
    ~Parser() {};

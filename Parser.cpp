@@ -18,6 +18,8 @@ namespace keyword {
    const std::string Varchar = "varchar";
    const std::string Date = "date";
    const std::string Timestamp = "timestamp";
+   const std::string Index = "index";
+   const std::string On = "on";
 }
 
 namespace literal {
@@ -65,7 +67,9 @@ static bool isIdentifier(const std::string& str) {
       str==keyword::Char ||
 	  str==keyword::Varchar ||
 	  str==keyword::Date ||
-   	  str==keyword::Timestamp
+   	  str==keyword::Timestamp ||
+	  str==keyword::Index ||
+	  str==keyword::On
    )
       return false;
    return str.find_first_not_of("abcdefghijklmnopqrstuvwxyz_1234567890") == std::string::npos;
@@ -91,10 +95,13 @@ void Parser::nextToken(unsigned line, const std::string& token, Schema& schema) 
             throw ParserError(line, "Expected 'CREATE', found '"+token+"'");
          break;
       case State::Create:
-         if (tok==keyword::Table)
+         if (tok==keyword::Table) {
             state=State::Table;
-         else
-            throw ParserError(line, "Expected 'TABLE', found '"+token+"'");
+         } else if (tok==keyword::Index) {
+        	state=State::Index;
+         } else {
+            throw ParserError(line, "Expected 'TABLE' or 'INDEX', found '"+token+"'");
+         }
          break;
       case State::Table:
          if (isIdentifier(tok)) {
@@ -126,6 +133,66 @@ void Parser::nextToken(unsigned line, const std::string& token, Schema& schema) 
          break;
       case State::CreateTableEnd:
          if (tok.size()==1 && tok[0]==literal::Semicolon)
+            state=State::Semicolon;
+         else
+            throw ParserError(line, "Expected ';', found '"+token+"'");
+         break;
+      case State::Index:
+          if (isIdentifier(tok)) {
+             state=State::IndexName;
+             schema.relations.back().indexes.push_back(Schema::Relation::Index(token));
+          } else {
+             throw ParserError(line, "Expected IndexName, found '"+token+"'");
+          }
+          break;
+      case State::IndexName:
+    	  if (tok==keyword::On)
+    		  state=State::On;
+    	  else
+              throw ParserError(line, "Expected 'on', found '"+token+"'");
+    	  break;
+      case State::On:
+    	  if (isIdentifier(tok))
+    		  state=State::IndexTable;
+    	  else
+              throw ParserError(line, "Expected TableName, found '"+token+"'");
+    	  break;
+      case State::IndexTable:
+         if (tok.size()==1 && tok[0]==literal::ParenthesisLeft)
+            state=State::IndexKeyListBegin;
+         else
+            throw ParserError(line, "Expected '(', found '"+token+"'");
+         break;
+      case State::IndexKeyListBegin:
+         if (isIdentifier(tok)) {
+            struct AttributeNamePredicate {
+               const std::string& name;
+               AttributeNamePredicate(const std::string& name) : name(name) {}
+               bool operator()(const Schema::Relation::Attribute& attr) const {
+                  return attr.name == name;
+               }
+            };
+            const auto& attributes = schema.relations.back().attributes;
+            AttributeNamePredicate p(token);
+            auto it = std::find_if(attributes.begin(), attributes.end(), p);
+            if (it == attributes.end())
+               throw ParserError(line, "'"+token+"' is not an attribute of '"+schema.relations.back().name+"'");
+            schema.relations.back().indexes.back().attributes.push_back(std::distance(attributes.begin(), it));
+            state=State::IndexKeyName;
+         } else {
+            throw ParserError(line, "Expected key attribute, found '"+token+"'");
+         }
+         break;
+      case State::IndexKeyName:
+         if (tok.size()==1 && tok[0] == literal::Comma)
+            state=State::IndexKeyListBegin;
+         else if (tok.size()==1 && tok[0] == literal::ParenthesisRight)
+            state=State::IndexKeyListEnd;
+         else
+            throw ParserError(line, "Expected ',' or ')', found '"+token+"'");
+         break;
+      case State::IndexKeyListEnd:
+    	  if (tok.size()==1 && tok[0] == literal::Semicolon)
             state=State::Semicolon;
          else
             throw ParserError(line, "Expected ';', found '"+token+"'");

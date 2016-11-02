@@ -40,8 +40,16 @@ std::string Schema::toString() const {
       for (unsigned keyId : rel.primaryKey)
          out << ' ' << rel.attributes[keyId].name;
       out << std::endl;
+      out << "\tIndexes:" << std::endl;
+      for (const Schema::Relation::Index& ind : rel.indexes){
+          out << "\t\t" << ind.name << ":";
+          for (unsigned keyId : ind.attributes)
+             out << ' ' << rel.attributes[keyId].name;
+          out << std::endl;
+      }
+      out << "\tAttributes:" << std::endl;
       for (const auto& attr : rel.attributes)
-         out << '\t' << attr.name << '\t' << type(attr) << (attr.notNull ? " not null" : "") << std::endl;
+         out << "\t\t" << attr.name << '\t' << type(attr) << (attr.notNull ? " not null" : "") << std::endl;
    }
    return out.str();
 }
