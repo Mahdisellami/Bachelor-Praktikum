@@ -116,17 +116,12 @@ void newOrder(TPCC& tpcc,int32_t w_id, int32_t d_id, int32_t c_id, int32_t ol_cn
 }
 
 void delivery(TPCC& tpcc, int32_t w_id, int32_t o_carrier_id, Timestamp now){
-	int64_t tid = -1;
 	for (int32_t d_id = 1; d_id < 10; d_id++){
-		map<tuple<Integer, Integer, Integer>, Tid>::iterator it = tpcc.newOrder.no_p_k.find({w_id, d_id, -1});
+		int64_t tid = -1;
+		map<tuple<Integer, Integer, Integer>, Tid>::iterator it = tpcc.newOrder.no_p_k.lower_bound({w_id, d_id, -1});
 		Integer o_id = get<2>((*it).first);
-		while (get<0>((*it).first) == w_id && get<1>((*it).first) == d_id) {
-			Integer temp_o_id = get<2>((*it).first);
-			if (temp_o_id < o_id) {
-				tid = (*it).second;
-				o_id = temp_o_id;
-			}
-			it++;
+		if (get<0>((*it).first) == w_id && get<1>((*it).first) == d_id){
+			tid = (*it).second;
 		}
 		if (tid == -1) {
 			continue;
