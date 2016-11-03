@@ -7,13 +7,11 @@
 #include <ctime>
 #include "Tpcc.hpp"
 #include "Parser.hpp"
+#include "Generator.hpp"
 
 using namespace std;
 
 const int32_t warehouses = 5;
-
-//TPCC
-TPCC tpcc;
 
 int32_t urand(int32_t min, int32_t max) {
 	return (random() % (max - min + 1)) + min;
@@ -34,7 +32,7 @@ int32_t nurand(int32_t A, int32_t x, int32_t y) {
 			+ x;
 }
 
-void newOrder(int32_t w_id, int32_t d_id, int32_t c_id, int32_t ol_cnt,
+void newOrder(TPCC& tpcc,int32_t w_id, int32_t d_id, int32_t c_id, int32_t ol_cnt,
 		int32_t* supware, int32_t* itemid, int32_t* qty, Timestamp now) {
 
 	uint64_t tid = tpcc.warehouse.lookup(w_id);
@@ -117,8 +115,43 @@ void newOrder(int32_t w_id, int32_t d_id, int32_t c_id, int32_t ol_cnt,
 	}
 }
 
-void newOrderRandom() {
-	Timestamp now(0);
+void delivery(TPCC& tpcc, int32_t w_id, int32_t o_carrier_id, Timestamp now){
+	int64_t tid = -1;
+	for (int32_t d_id = 1; d_id < 10; d_id++){
+		map<tuple<Integer, Integer, Integer>, Tid>::iterator it = tpcc.newOrder.no_p_k.find({w_id, d_id, -1});
+		Integer o_id = get<2>((*it).first);
+		while (get<0>((*it).first) == w_id && get<1>((*it).first) == d_id) {
+			Integer temp_o_id = get<2>((*it).first);
+			if (temp_o_id < o_id) {
+				tid = (*it).second;
+				o_id = temp_o_id;
+			}
+			it++;
+		}
+		if (tid == -1) {
+			continue;
+		}
+		tpcc.newOrder.deleteElement(tid);
+
+
+		tid = tpcc.order.lookup(w_id, d_id, o_id);
+		Numeric<2,0> o_ol_cnt = tpcc.order.get_o_ol_cnt(tid);
+		Integer o_c_id = tpcc.order.get_o_c_id(tid);
+
+		tpcc.order.set_o_carrier_id(tid, o_carrier_id);
+
+		Numeric<6,2> ol_total = 0;
+		for (int64_t ol_number = 1; ol_number <= o_ol_cnt.value; ol_number++) {
+	    	tid = tpcc.orderLine.lookup(w_id, d_id, o_id, ol_number);
+	    	tpcc.orderLine.set_ol_delivery_d(tid, now);
+		}
+
+	    tid = tpcc.customer.lookup(w_id, d_id, o_c_id);
+	    tpcc.customer.set_c_balance(tid, tpcc.customer.get_c_balance(tid).value + ol_total.value);
+	}
+}
+
+void newOrderRandom(TPCC& tpcc, Timestamp now) {
 	int32_t w_id = urand(1, warehouses);
 	int32_t d_id = urand(1, 10);
 	int32_t c_id = nurand(1023, 1, 3000);
@@ -136,19 +169,35 @@ void newOrderRandom() {
 		qty[i] = urand(1, 10);
 	}
 
-	newOrder(w_id, d_id, c_id, ol_cnt, supware, itemid, qty, now);
+	newOrder(tpcc, w_id, d_id, c_id, ol_cnt, supware, itemid, qty, now);
+}
+
+void deliveryRandom(TPCC& tpcc, Timestamp now) {
+   delivery(tpcc, urand(1,warehouses),urand(1,10),now);
+}
+
+void oltp(TPCC& tpcc, Timestamp now) {
+   int rnd=urand(1,100);
+   if (rnd<=10) {
+      deliveryRandom(tpcc, now);
+   } else {
+      newOrderRandom(tpcc, now);
+   }
 }
 
 int main() {
-	Parser p("schema.sql");
-	cout << p.parse()->toString() << "\n";
+	Timestamp now(0);
+//	Parser p("schema.sql");
+//	Generator g(*p.parse());
+//	g.generate();
+	TPCC tpcc;
 	tpcc.populateDataBase();
 	cout << "Orders: " << tpcc.order.order.size() << "\n";
 	cout << "New Orders: " << tpcc.newOrder.newOrder.size() << "\n";
 	cout << "Order Lines: " << tpcc.orderLine.orderLine.size() << "\n";
 	clock_t begin = clock();
 	for (int i = 0; i < 1000000; i++) {
-		newOrderRandom();
+		oltp(tpcc, now);
 	}
 	clock_t end = clock();
 	double elapsed_secs = (double(end - begin) / CLOCKS_PER_SEC) / 100;

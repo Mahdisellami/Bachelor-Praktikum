@@ -48,7 +48,6 @@ std::unique_ptr<Schema> Parser::parse() {
       nextToken(line, token.substr(prevPos), *s);
       if (token.find("\n")!=std::string::npos)
          ++line;
-      std::cout << token << "\n";
    }
    in.close();
    return std::move(s);
