@@ -402,11 +402,15 @@ class TPCC {
 		}
 		inline void deleteElement(Tid tid){
 			if (tid < newOrder.size()){
+				newOrder.at(tid) = newOrder.at(newOrder.size() - 1);
+				newOrder.pop_back();
 				map<tuple<Integer, Integer, Integer>, Tid>::iterator it = no_p_k.begin();
-				for (Tid i=0; i<tid; i++)
+ 				for (Tid i=0; i<tid; i++)
 					it++;
 				no_p_k.erase(it);
-				newOrder.erase(newOrder.begin() + tid);
+				it = no_p_k.end();
+				it--;
+				it->second = tid;
 			}
 
 		}

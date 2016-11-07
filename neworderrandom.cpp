@@ -116,33 +116,34 @@ void newOrder(TPCC& tpcc,int32_t w_id, int32_t d_id, int32_t c_id, int32_t ol_cn
 }
 
 void delivery(TPCC& tpcc, int32_t w_id, int32_t o_carrier_id, Timestamp now){
-	for (int32_t d_id = 1; d_id < 10; d_id++){
-		int64_t tid = -1;
-		map<tuple<Integer, Integer, Integer>, Tid>::iterator it = tpcc.newOrder.no_p_k.lower_bound({w_id, d_id, -1});
-		Integer o_id = get<2>((*it).first);
-		if (get<0>((*it).first) == w_id && get<1>((*it).first) == d_id){
+	for (Integer d_id = 1; d_id<10; d_id = d_id + 1){
+		Tid tid;
+		Integer o_id;
+		map<tuple<Integer,Integer,Integer>,Tid>::iterator it = tpcc.newOrder.no_p_k.lower_bound({w_id, d_id, -1});
+		if((get<0>((*it).first) == w_id) && (get<1>((*it).first) == d_id)){
+			o_id = get<2>((*it).first);
 			tid = (*it).second;
-		}
-		if (tid == -1) {
+		} else {
 			continue;
 		}
 		tpcc.newOrder.deleteElement(tid);
 
-
-		tid = tpcc.order.lookup(w_id, d_id, o_id);
+		tid = tpcc.order.lookup(w_id,d_id,o_id);
 		Numeric<2,0> o_ol_cnt = tpcc.order.get_o_ol_cnt(tid);
 		Integer o_c_id = tpcc.order.get_o_c_id(tid);
-
 		tpcc.order.set_o_carrier_id(tid, o_carrier_id);
 
 		Numeric<6,2> ol_total = 0;
-		for (int64_t ol_number = 1; ol_number <= o_ol_cnt.value; ol_number++) {
-	    	tid = tpcc.orderLine.lookup(w_id, d_id, o_id, ol_number);
-	    	tpcc.orderLine.set_ol_delivery_d(tid, now);
+		for (Integer ol_number =1; ol_number<o_ol_cnt.value; ol_number = ol_number + 1){
+			tid = tpcc.orderLine.lookup(w_id, d_id, o_id, ol_number);
+			Numeric<6,2> ol_amount = tpcc.orderLine.get_ol_amount(tid);
+			ol_total += ol_amount;
+			tpcc.orderLine.set_ol_delivery_d(tid, now);
 		}
-
-	    tid = tpcc.customer.lookup(w_id, d_id, o_c_id);
-	    tpcc.customer.set_c_balance(tid, tpcc.customer.get_c_balance(tid).value + ol_total.value);
+		tid = tpcc.customer.lookup(w_id, d_id, o_c_id);
+		Numeric<12,2> c_balance = tpcc.customer.get_c_balance(tid);
+		c_balance = c_balance + ol_total.value;
+		tpcc.customer.set_c_balance(tid, c_balance);
 	}
 }
 
@@ -195,8 +196,8 @@ int main() {
 		oltp(tpcc, now);
 	}
 	clock_t end = clock();
-	double elapsed_secs = (double(end - begin) / CLOCKS_PER_SEC) / 100;
-	double transactions = 10000.0 / elapsed_secs;
+	double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+	double transactions = 1000000.0 / elapsed_secs;
 	cout << transactions << " Transactions per second.\n";
 	cout << "Orders: " << tpcc.order.order.size() << "\n";
 	cout << "New Orders: " << tpcc.newOrder.newOrder.size() << "\n";
