@@ -201,6 +201,7 @@ class TPCC {
 	//---------------------------------------------------------------------------
 	// Customer class
 	class Customer {
+	public:
 		/// Customer Row
 		struct Customer_Row {
 			Integer c_id;
@@ -226,7 +227,6 @@ class TPCC {
 			Varchar<500> c_data;
 			//primary key (c_w_id,c_d_id,c_id)
 		};
-	public:
 		//Customer
 		vector<Customer_Row> customer;
 		//Customer primary key
@@ -428,6 +428,7 @@ class TPCC {
 	//---------------------------------------------------------------------------
 	// Order class
 	class Order {
+	public:
 		/// Order Row
 		struct Order_Row {
 			Integer o_id;
@@ -440,7 +441,6 @@ class TPCC {
 			Numeric<1,0> o_all_local;
 			//primary key (o_w_id,o_d_id,o_id)
 		};
-	public:
 		//Order
 		vector<Order_Row> order;
 		//Order primary key
@@ -491,6 +491,7 @@ class TPCC {
 	//---------------------------------------------------------------------------
 	// OrderLine class
 	class OrderLine {
+	public:
 		/// OrderLine Row
 		struct OrderLine_Row {
 			Integer ol_o_id;
@@ -505,7 +506,6 @@ class TPCC {
 			Char<24> ol_dist_info;
 			//primary key (ol_w_id,ol_d_id,ol_o_id,ol_number)
 		};
-	public:
 		//OrderLine
 		vector<OrderLine_Row> orderLine;
 		//OrderLine primary key
@@ -1391,6 +1391,43 @@ public:
 		addStock("tpcc_stock.tbl");
 		addStock("tpcc_stock_2.tbl");
 		cout << "Done." << "\n";
+	}
+
+	double query(){
+		unordered_multimap<tuple<Integer,Integer,Integer>, TPCC::Customer::Customer_Row> IndexCustomer;
+		for (TPCC::Customer::Customer_Row c : customer.customer){
+			if (c.c_last.value[0]=='B'){
+				IndexCustomer.insert({{c.c_w_id, c.c_d_id, c.c_id}, c});
+			}
+		}
+		std::vector<tuple<TPCC::Order::Order_Row,TPCC::Customer::Customer_Row>> result;
+		for (TPCC::Order::Order_Row o : order.order){
+			if (IndexCustomer.count({o.o_w_id, o.o_d_id, o.o_c_id})){
+				auto range = IndexCustomer.equal_range({o.o_w_id, o.o_d_id, o.o_c_id});
+			    for (auto it = range.first; it != range.second; ++it) {
+			    	result.push_back({o,it->second});};
+			    }
+			}
+
+		unordered_multimap<tuple<Integer,Integer,Integer>, tuple<TPCC::Order::Order_Row ,TPCC::Customer::Customer_Row>> IndexOrderCustomer;
+		for (tuple<TPCC::Order::Order_Row,TPCC::Customer::Customer_Row> o_c : result){
+				IndexOrderCustomer.insert({{get<0>(o_c).o_w_id, get<0>(o_c).o_d_id, get<0>(o_c).o_id}, o_c});
+		}
+		std::vector<tuple<TPCC::OrderLine::OrderLine_Row,TPCC::Order::Order_Row,TPCC::Customer::Customer_Row>> endResult;
+		for (TPCC::OrderLine::OrderLine_Row ol : orderLine.orderLine){
+			if (IndexOrderCustomer.count({ol.ol_w_id, ol.ol_d_id, ol.ol_o_id})){
+				auto range = IndexOrderCustomer.equal_range({ol.ol_w_id, ol.ol_d_id, ol.ol_o_id});
+			    for (auto it = range.first; it != range.second; ++it) {
+			    	endResult.push_back({ol, get<0>(it->second), get<1>(it->second)});};
+			    }
+			}
+		double sum =0.0;
+		for (tuple<TPCC::OrderLine::OrderLine_Row,TPCC::Order::Order_Row,TPCC::Customer::Customer_Row> r : endResult){
+			sum = sum + get<0>(r).ol_quantity.value * 0.01 * get<0>(r).ol_amount.value - get<2>(r).c_balance.value * 0.01 * get<1>(r).o_ol_cnt.value;
+		}
+		return sum;
+
+
 	}
 
 
