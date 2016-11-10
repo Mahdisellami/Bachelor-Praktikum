@@ -8,10 +8,25 @@
 #include "Tpcc.hpp"
 #include "Parser.hpp"
 #include "Generator.hpp"
+#include <iomanip>
+#include <atomic>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 using namespace std;
 
 const int32_t warehouses = 5;
+
+atomic<bool> childRunning;
+
+static void SIGCHLD_handler(int /*sig*/) {
+   int status;
+   pid_t childPid=wait(&status);
+   // now the child with process id childPid is dead
+   childRunning=false;
+}
 
 int32_t urand(int32_t min, int32_t max) {
 	return (random() % (max - min + 1)) + min;
@@ -174,33 +189,72 @@ void deliveryRandom(TPCC& tpcc, Timestamp now) {
 
 void oltp(TPCC& tpcc, Timestamp now) {
    int rnd=urand(1,100);
-   if (rnd<=10) {
+   if (rnd<0) {
       deliveryRandom(tpcc, now);
    } else {
       newOrderRandom(tpcc, now);
    }
 }
 
+//int main() {
+//	Timestamp now(0);
+////	Parser p("schema.sql");
+////	Generator g(*p.parse());
+////	g.generate();
+//	TPCC tpcc;
+//	tpcc.populateDataBase();
+//	cout << "Orders: " << tpcc.order.order.size() << "\n";
+//	cout << "New Orders: " << tpcc.newOrder.newOrder.size() << "\n";
+//	cout << "Order Lines: " << tpcc.orderLine.orderLine.size() << "\n";
+//	cout << "customer: " << tpcc.customer.customer.size() << "\n";
+////	clock_t begin = clock();
+////	for (int i = 0; i < 1000000; i++) {
+////		oltp(tpcc, now);
+////	}
+////	clock_t end = clock();
+////	double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+////	double transactions = 1000000.0 / elapsed_secs;
+////	cout << transactions << " Transactions per second.\n";
+////	cout << "Orders: " << tpcc.order.order.size() << "\n";
+////	cout << "New Orders: " << tpcc.newOrder.newOrder.size() << "\n";
+////	cout << "Order Lines: " << tpcc.orderLine.orderLine.size() << "\n";
+//	cout << "Executing 10 task3 queries...\n";
+//	clock_t begin = clock();
+//	for (int i=0; i < 10; i++){
+//		double result = tpcc.query();
+//		cout << "Result: " << fixed << setprecision(2) << result << "\n";
+//	}
+//	clock_t end = clock();
+//	double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+//	cout << "Executed in " << elapsed_secs << "seconds\n";
+//	return 0;
+//}
+
 int main() {
-	Timestamp now(0);
-//	Parser p("schema.sql");
-//	Generator g(*p.parse());
-//	g.generate();
-	TPCC tpcc;
-	tpcc.populateDataBase();
-	cout << "Orders: " << tpcc.order.order.size() << "\n";
-	cout << "New Orders: " << tpcc.newOrder.newOrder.size() << "\n";
-	cout << "Order Lines: " << tpcc.orderLine.orderLine.size() << "\n";
-	clock_t begin = clock();
-	for (int i = 0; i < 1000000; i++) {
-		oltp(tpcc, now);
-	}
-	clock_t end = clock();
-	double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-	double transactions = 1000000.0 / elapsed_secs;
-	cout << transactions << " Transactions per second.\n";
-	cout << "Orders: " << tpcc.order.order.size() << "\n";
-	cout << "New Orders: " << tpcc.newOrder.newOrder.size() << "\n";
-	cout << "Order Lines: " << tpcc.orderLine.orderLine.size() << "\n";
-	return 0;
+   struct sigaction sa;
+   sigemptyset(&sa.sa_mask);
+   sa.sa_flags=0;
+   sa.sa_handler=SIGCHLD_handler;
+   sigaction(SIGCHLD,&sa,NULL);
+   	Timestamp now(0);
+   	TPCC tpcc;
+   	tpcc.populateDataBase();
+   	cout << "Orders: " << tpcc.order.order.size() << "\n";
+   	cout << "New Orders: " << tpcc.newOrder.newOrder.size() << "\n";
+   	cout << "Order Lines: " << tpcc.orderLine.orderLine.size() << "\n";
+
+    for (unsigned i=0; i<1000000; i++) {
+       childRunning=true;
+       pid_t pid=fork();
+       if (pid) { // parent
+    	   oltp(tpcc, now);
+     	  cout << "Executing transaction...\n";
+          while (childRunning); // wait for child
+       } else { // forked child
+    	  double result = tpcc.query();
+    	  cout << "Result: " << fixed << setprecision(2) << result << "\n";
+          return 0; // child is finished
+       }
+    }
+   return 0;
 }
