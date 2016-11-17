@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include "AlgebraTree.hpp"
 
 using namespace std;
 
@@ -231,30 +232,61 @@ void oltp(TPCC& tpcc, Timestamp now) {
 //}
 
 int main() {
-   struct sigaction sa;
-   sigemptyset(&sa.sa_mask);
-   sa.sa_flags=0;
-   sa.sa_handler=SIGCHLD_handler;
-   sigaction(SIGCHLD,&sa,NULL);
-   	Timestamp now(0);
-   	TPCC tpcc;
-   	tpcc.populateDataBase();
-   	cout << "Orders: " << tpcc.order.order.size() << "\n";
-   	cout << "New Orders: " << tpcc.newOrder.newOrder.size() << "\n";
-   	cout << "Order Lines: " << tpcc.orderLine.orderLine.size() << "\n";
+//   struct sigaction sa;
+//   sigemptyset(&sa.sa_mask);
+//   sa.sa_flags=0;
+//   sa.sa_handler=SIGCHLD_handler;
+//   sigaction(SIGCHLD,&sa,NULL);
+//   	Timestamp now(0);
+//   	TPCC tpcc;
+//   	tpcc.populateDataBase();
+//   	cout << "Orders: " << tpcc.order.order.size() << "\n";
+//   	cout << "New Orders: " << tpcc.newOrder.newOrder.size() << "\n";
+//   	cout << "Order Lines: " << tpcc.orderLine.orderLine.size() << "\n";
+//
+//    for (unsigned i=0; i<1000000; i++) {
+//       childRunning=true;
+//       pid_t pid=fork();
+//       if (pid) { // parent
+//    	   oltp(tpcc, now);
+//     	  cout << "Executing transaction...\n";
+//          while (childRunning); // wait for child
+//       } else { // forked child
+//    	  double result = tpcc.query();
+//    	  cout << "Result: " << fixed << setprecision(2) << result << "\n";
+//          return 0; // child is finished
+//       }
+//    }
+	Parser p("schema.sql");
+	auto schema = *p.parse();
+	Scan c = Scan(NULL,NULL, &schema.relations[2]);
+	Scan o = Scan(NULL,NULL, &schema.relations[5]);
+	Scan l = Scan(NULL,NULL, &schema.relations[6]);
+	Selection select1 = Selection(NULL,NULL, "c_id", 322);
+	c.setConsumer(&select1);
+	select1.setInput(&c);
+	Selection select2 = Selection(NULL,NULL, "c_d_id", 1);
+	select1.setConsumer(&select2);
+	select2.setInput(&select1);
+	Selection select3 = Selection(NULL,NULL, "c_w_id", 1);
+	select2.setConsumer(&select3);
+	select3.setInput(&select2);
+	HashJoin join1 = HashJoin(NULL,NULL, NULL);
+	select3.setConsumer(&join1);
+	o.setConsumer(&join1);
+	join1.setInput(&select3);
+	join1.setInput2(&o);
+	HashJoin join2 = HashJoin(NULL,NULL, NULL);
+	join1.setConsumer(&join2);
+	l.setConsumer(&join2);
+	join2.setInput(&join1);
+	join2.setInput2(&l);
+	Print print = Print(NULL,NULL);
+	join2.setConsumer(&print);
+	print.setInput(&join2);
+	print.produce();
+//	static_cast<Node&>(print).produce();
 
-    for (unsigned i=0; i<1000000; i++) {
-       childRunning=true;
-       pid_t pid=fork();
-       if (pid) { // parent
-    	   oltp(tpcc, now);
-     	  cout << "Executing transaction...\n";
-          while (childRunning); // wait for child
-       } else { // forked child
-    	  double result = tpcc.query();
-    	  cout << "Result: " << fixed << setprecision(2) << result << "\n";
-          return 0; // child is finished
-       }
-    }
+
    return 0;
 }
